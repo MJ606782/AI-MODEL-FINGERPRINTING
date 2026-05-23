@@ -22,26 +22,29 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 # --- LOAD LOCAL DEEP LEARNING TRANSFORMER ASSETS ---
 @st.cache_resource
 def load_forensic_transformer():
-    # 1. Define paths relative to the current script workspace directory instead of absolute hardcoded drives
     base_dir = os.path.dirname(os.path.abspath(__file__))
     local_weights_path = os.path.join(base_dir, "distilbert_weights")
     local_head_file = os.path.join(local_weights_path, "custom_classification_head.pt")
 
-    # 2. Dual check: If local weights folder exists, use it. Otherwise, pull baseline from the Hugging Face Hub!
-    if os.path.exists(os.path.join(local_weights_path, "config.json")):
-        print("📁 Loading local fine-tuned base configuration...")
+    # Safetensors check to make sure we don't try loading half-empty folders on the cloud
+    has_config = os.path.exists(os.path.join(local_weights_path, "config.json"))
+    has_weights = os.path.exists(os.path.join(local_weights_path, "model.safetensors"))
+
+    # Only run local loading if BOTH structural files exist
+    if has_config and has_weights:
+        print(" Loading local fine-tuned base configuration...")
         tokenizer = AutoTokenizer.from_pretrained(local_weights_path)
         model = AutoModelForSequenceClassification.from_pretrained(local_weights_path, num_labels=5)
         
         if os.path.exists(local_head_file):
-            st.sidebar.success("🎯 Fine-Tuned Local Head Active")
+            st.sidebar.success(" Fine-Tuned Local Head Active")
             checkpoint = torch.load(local_head_file, map_location=torch.device('cpu'))
             model.load_state_dict(checkpoint)
         return tokenizer, model, True
     else:
-        # Cloud server fallback: Instantly download pristine base parameters directly from Hugging Face
-        print("🌐 Local weights not found. Initializing Hugging Face Cloud Fallback...")
-        st.sidebar.warning("🌐 Cloud Sandbox Mode: Baseline Transformer Active")
+        # Secure fallback for cloud sandbox environments
+        print(" Local weights missing or untracked. Initializing Hugging Face Cloud Fallback...")
+        st.sidebar.warning(" Cloud Sandbox Mode: Baseline Transformer Active")
         
         fallback_model_name = "distilbert-base-uncased"
         tokenizer = AutoTokenizer.from_pretrained(fallback_model_name)
