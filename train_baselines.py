@@ -91,6 +91,7 @@ for name, clf in models.items():
         best_accuracy = test_acc
         best_model_name = name
         best_preds = test_preds
+        best_clf = clf
 
 # ==============================================================================
 # REPORT REQUIREMENTS BREAKDOWN
@@ -111,3 +112,22 @@ test_df = pd.DataFrame({'True_Label': y_test, 'Predicted': best_preds, 'Category
 for category_name, group in test_df.groupby('Category'):
     cat_acc = accuracy_score(group['True_Label'], group['Predicted'])
     print(f"    {category_name:<35}: {cat_acc * 100:.2f}% Accuracy")
+
+import joblib
+import os
+
+# Create the absolute folder destination if Windows is being difficult
+os.makedirs("D:/Aiml/data/processed", exist_ok=True)
+
+print("\n💾 Forcing baseline serialization...")
+# Grab the active classifier object 'clf' directly from your evaluation script state
+try:
+    joblib.dump(clf, "D:/Aiml/data/processed/gradient_boosting_model.pkl")
+    print("🎯 SUCCESS! Physical file written to: D:/Aiml/data/processed/gradient_boosting_model.pkl")
+except NameError:
+    # If your loop uses a dictionary like 'models[best_model_name]', we grab it here:
+    if 'models' in locals() and 'best_model_name' in locals():
+        joblib.dump(models[best_model_name], "D:/Aiml/data/processed/gradient_boosting_model.pkl")
+        print(f"🎯 SUCCESS! Serialized {best_model_name} to D:/Aiml/data/processed/gradient_boosting_model.pkl")
+    else:
+        print("❌ Could not resolve the model variable name in memory.")
