@@ -151,7 +151,7 @@ with tab1:
                     
                     # 2. Execute a local on-device forward-pass inference loop
                     with torch.no_grad():
-                        outputs = transformer_model(**inputs)
+                        outputs = model(**inputs)
                         logits = outputs.logits
                         # Smooth raw logit outputs into a clear probability distribution array
                         probabilities = F.softmax(logits, dim=-1).squeeze().tolist()
