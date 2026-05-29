@@ -38,7 +38,7 @@ AI-model-fingerprinting/
 │
 ├── app.py                       # Front-facing Streamlit dashboard interface
 ├── requirements.txt             # Project environment dependency manifest
-└── README.md                    # Core documentation
+└── README.md                   # Core documentation
 
 ```
 
