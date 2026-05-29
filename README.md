@@ -1,44 +1,51 @@
-# AI Model Fingerprinting & Forensic Stylometry
+# 🔍 AI Model Fingerprinting & Forensic Stylometry
 
-An end-to-end natural language processing pipeline built on top of a fine-tuned **DistilBERT** transformer architecture to detect, decode, and map the distinct stylistic authorship signatures of 5 prominent Large Language Models (ChatGPT, Claude, Gemini, LLaMA, and Mistral).
+Every Large Language Model has an invisible writing signature — shaped by its training data, alignment tuning, and RLHF process. GPT-4 hedges differently than Claude. Gemini structures arguments differently than LLaMA. These patterns are subtle, consistent, and machine-detectable.
+
+This repository implements an advanced Natural Language Processing (NLP) forensics pipeline using a fine-tuned **DistilBERT** sequence classifier to decode and capture these hidden linguistic footprints. It decouples superficial presentation layers from core stylistic syntax to ensure highly robust authorship classification.
 
 ---
 
-## 📂 Repository Architecture
-
-The repository has been restructured into modular pipelines to separate data engineering workflows, exploratory research scratchpads, and production-ready inference assets:
+## 🛠️ Complete Project Architecture
 
 ```text
-AI-model-fingerprinting/
-│
-├── src/                         # Production modeling & evaluation engine
-│   ├── local_tune.py            # 5-epoch unfrozen training engine
-│   ├── evaluate_matrix.py       # Metrics extraction and Seaborn plotting
-│   └── adversarial_attacks.py   # Robustness & prompt-spoofing benchmarks
-│
-├── data_engineering/            # Data collection, cleaning, and preparation
-│   ├── collect_data.py          # Baseline generation scraping
-│   ├── merge_data.py            # Dataset consolidation utility
-│   ├── prep_colab_data.py       # Cloud training formatting pipeline
-│   ├── check_csv.py             # Delimiter validation script
-│   └── repair_csv_structure.py  # Structural integrity & parsing fix
-│
-├── research_scratchpad/         # Exploratory analysis & historical testing
-│   ├── inspect_raw.py           # Initial data token inspections
-│   ├── check_data.py            # Class balance distribution checking
-│   ├── pr.ipynb / pr.ipy        # Prototyping scratchpads
-│   ├── test_env.py / test2.py   # Local environment verification scripts
-│   ├── recover.py / *_gemini.py # Targeted data recovery scripts
-│   └── find_pkl.py              # Serialized weight inspection utility
-│
-├── analysis_plots/              # Explainable AI & validation artifacts
-│   ├── confusion_matrix.png     # Evaluated performance boundary map
-│   ├── shap_original_claude.png # Baseline token impact visualizer
-│   └── shap_adversarial_*.png   # Camouflage behavior visualizer
-│
-├── app.py                       # Front-facing Streamlit dashboard interface
-├── requirements.txt             # Project environment dependency manifest
-└── README.md                   # Core documentation
+├── analysis_plots/             # Visual evaluation and model explainability assets
+│   ├── confusion_matrix.png     # Evaluation breakdown across target model categories
+│   ├── shap_adversarial_gpt4o_spoof.png # SHAP feature attributions for spoofing attempts
+│   └── shap_original_claude.png # Baseline SHAP linguistic attribution maps for Claude
+├── data_engineering/           # Specialized pipelines for handling data curation
+│   ├── check_csv.py             # Integrity validation framework for runtime inputs
+│   ├── collect_data.py          # Automated generation and crawling API collectors
+│   ├── merge_data.py            # Dataset aggregation and consolidation module
+│   ├── prep_colab_data.py       # Serialization layer for high-compute environments
+│   └── repair_csv_structure.py  # Structural recovery script for broken CSV boundaries
+├── distilbert_weights/         # Local model calibration parameters (Git ignored binary layers)
+│   ├── config.json              # Model configuration specifications
+│   ├── tokenizer.json           # Sub-word token mappings and vocabulary arrays
+│   └── tokenizer_config.json    # Behavioral padding/truncation runtime targets
+├── research_scratchpad/        # Experimental sandboxes and validation baselines
+│   ├── check_data.py            # Ad-hoc distribution verification checks
+│   ├── distilbert_report.txt    # Extracted validation performance logs
+│   ├── find_pkl.py              # Feature object tracking lookup utility
+│   ├── inspect_raw.py           # Raw text string sample diagnostic suite
+│   ├── pr.ipy / pr.ipynb        # Interactive exploratory data analysis notebooks
+│   ├── recover.py / recover_gemini.py # Fallback procedures for interrupted runs
+│   └── test2.py / test_env.py   # Local runtime package and hardware checks
+├── src/                        # Core production pipeline components
+│   ├── adversarial_attacks.py   # Evaluates boundary vulnerabilities against adversarial text
+│   ├── compile_final_dataset.py # Builds tokenization-ready training tensors
+│   ├── evaluate_matrix.py       # Calculates validation metrics across model slices
+│   ├── extract_features.py      # Computes semantic density profiles
+│   ├── feature_pipeline.py      # Streamlined data transformation pipeline execution
+│   ├── local_tune.py            # PyTorch Trainer constructor for transformer headers
+│   └── test_utils.py            # Stylometric cleaner (filters out cheater tokens & markdown masks)
+├── .gitignore                  # Keeps heavy weights out of cloud commits
+├── README.md                   # Repository documentation and overview
+├── app.py                      # Multi-tab interactive Streamlit web dashboard
+├── master_matrix.py            # Combines stylometric embeddings with tf-idf weights
+├── requirements.txt            # System dependencies (PyTorch, Transformers, Streamlit)
+└── train_baselines.py          # Benchmark scripts for traditional estimators
+
 
 ```
 
