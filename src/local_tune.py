@@ -4,6 +4,7 @@ import random
 import pandas as pd
 from torch.utils.data import Dataset, DataLoader
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from test_utils import clean_stylometric_text
 
 print(" Initializing Upgraded Deep Variation Fine-Tuning Pipeline...")
 
@@ -44,6 +45,7 @@ class StylometricDataset(Dataset):
         label_series = df['label'].iloc[:, 0] if isinstance(df['label'], pd.DataFrame) else df['label']
         
         raw_texts = text_series.astype(str).tolist()
+        raw_texts = [clean_stylometric_text(text) for text in raw_texts]
         raw_labels = label_series.astype(str).tolist()
         
         # 3. Match the text names cleanly into our stable 0-4 numerical index bounds

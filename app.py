@@ -5,6 +5,7 @@ import plotly.express as px
 import os
 import joblib
 import re
+from src.test_utils import clean_stylometric_text
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
@@ -113,7 +114,7 @@ st.sidebar.markdown("**Model Architecture:** `DistilBERT Ensemble` + `GBM Baseli
 st.sidebar.markdown("**Target Classes:** 5 Large Language Models")
 
 # --- INITIALIZE INTERACTIVE TABS ---
-tab1, tab2, tab3 = st.tabs([" Live Model Fingerprinter", "⚔️ Robustness Benchmark", "📊 Feature Explorer"])
+tab1, tab2, tab3 = st.tabs([" Live Model Fingerprinter", " Robustness Benchmark", " Feature Explorer"])
 
 # ==========================================
 # TAB 1: LIVE MODEL FINGERPRINTER
@@ -141,6 +142,7 @@ with tab1:
              with st.spinner("Analyzing deep token transitions via DistilBERT..."):
                 
                 if transformer_loaded:
+                    cleaned_text = clean_stylometric_text(user_text)
                     # 1. Run input text through the sub-word tokenization layer
                     inputs = tokenizer(
                         user_text, 
