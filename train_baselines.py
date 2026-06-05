@@ -61,7 +61,7 @@ X_test_scaled = scaler.transform(X_test)
 # ==============================================================================
 models = {
     " Random Forest": RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced'),
-    " Gradient Boosting": GradientBoostingClassifier(n_estimators=100, random_state=42),
+    " Gradient Boosting": GradientBoostingClassifier(n_estimators=100, random_state=42, learning_rate=0.1, max_depth=3),
     " SVM (RBF Kernel)": SVC(kernel='rbf', C=1.0, random_state=42, class_weight='balanced')
 }
 
@@ -116,18 +116,21 @@ for category_name, group in test_df.groupby('Category'):
 import joblib
 import os
 
-# Create the absolute folder destination if Windows is being difficult
+# Create the absolute folder destination
 os.makedirs("D:/Aiml/data/processed", exist_ok=True)
 
-print("\n💾 Forcing baseline serialization...")
-# Grab the active classifier object 'clf' directly from your evaluation script state
+print("\n💾 Serializing Winning Model and Feature Scaler Assets...")
+
 try:
-    joblib.dump(clf, "D:/Aiml/data/processed/gradient_boosting_model.pkl")
-    print("🎯 SUCCESS! Physical file written to: D:/Aiml/data/processed/gradient_boosting_model.pkl")
+    # 1. Save the ACTUAL winning model tracked by your loop condition
+    model_save_path = "D:/Aiml/data/processed/gradient_boosting_model.pkl"
+    joblib.dump(best_clf, model_save_path)
+    print(f"🎯 SUCCESS! Serialized Winner ({best_model_name.strip()}) to: {model_save_path}")
+    
+    # 2. Save the fitted scaler so your Streamlit app can normalize inference data perfectly!
+    scaler_save_path = "D:/Aiml/data/processed/scaler.pkl"
+    joblib.dump(scaler, scaler_save_path)
+    print(f"🎯 SUCCESS! Serialized Feature Scaler to: {scaler_save_path}")
+
 except NameError:
-    # If your loop uses a dictionary like 'models[best_model_name]', we grab it here:
-    if 'models' in locals() and 'best_model_name' in locals():
-        joblib.dump(models[best_model_name], "D:/Aiml/data/processed/gradient_boosting_model.pkl")
-        print(f"🎯 SUCCESS! Serialized {best_model_name} to D:/Aiml/data/processed/gradient_boosting_model.pkl")
-    else:
-        print("❌ Could not resolve the model variable name in memory.")
+    print("❌ Fatal: Could not resolve the 'best_clf' or 'scaler' variable state in memory.")

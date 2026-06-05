@@ -6,6 +6,8 @@ import os
 import joblib
 import re
 from src.test_utils import clean_stylometric_text
+from src.extract_features import extract_stylometrics
+
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
@@ -84,23 +86,22 @@ def extract_stylometric_features(text):
     return pd.DataFrame([features])
 
 # --- LOAD LOCAL TRAINED MODEL ASSETS ---
+# --- LOAD LOCAL TRAINED MODEL ASSETS ---
 @st.cache_resource
 def load_forensic_models():
     model_path = "D:/Aiml/data/processed/gradient_boosting_model.pkl"
-    # Load your corresponding TF-IDF vectorizer matrix to capture the missing 35 tokens
     vectorizer_path = "D:/Aiml/data/processed/tfidf_vectorizer.pkl"
+    scaler_path = "D:/Aiml/data/processed/scaler.pkl" # Add your scaler path here
     
-    if os.path.exists(model_path) and os.path.exists(vectorizer_path):
+    # Load model and scaler if they exist
+    if os.path.exists(model_path) and os.path.exists(scaler_path):
         model = joblib.load(model_path)
-        vectorizer = joblib.load(vectorizer_path)
-        return model, vectorizer, True
-    elif os.path.exists(model_path):
-        # Fallback if only model exists
-        model = joblib.load(model_path)
-        return model, None, True
+        scaler = joblib.load(scaler_path)
+        return model, scaler, True
     return None, None, False
 
-gb_model, tfidf_vec, models_loaded = load_forensic_models()
+# Update global variable naming assignment
+gb_model, feature_scaler, models_loaded = load_forensic_models()
 
 # --- APPLICATION HEADER ---
 st.title(" AI Writing Style Forensics Dashboard")
@@ -139,28 +140,53 @@ with tab1:
         
     with col2:
         if run_analysis and user_text.strip():
-             with st.spinner("Analyzing deep token transitions via DistilBERT..."):
+            with st.spinner("Analyzing deep token transitions via DistilBERT..."):
                 
                 if transformer_loaded:
+                    # 1. Clean the text using your optimized utility function
                     cleaned_text = clean_stylometric_text(user_text)
-                    # 1. Run input text through the sub-word tokenization layer
+                    
+                    # 2. ROUTE THE CLEANED TEXT TO THE TOKENIZER
                     inputs = tokenizer(
-                        user_text, 
-                        return_tensors="pt", 
-                        truncation=True, 
+                        cleaned_text,  # Fixed to process the sanitized string
+                        return_tensors="pt",
+                        truncation=True,
                         max_length=512
                     )
                     
-                    # 2. Execute a local on-device forward-pass inference loop
+                    # 3. Execute transformer inference
                     with torch.no_grad():
                         outputs = model(**inputs)
                         logits = outputs.logits
-                        # Smooth raw logit outputs into a clear probability distribution array
-                        probabilities = F.softmax(logits, dim=-1).squeeze().tolist()
+                        # Convert transformer scores to raw probability arrays
+                        transformer_probs = F.softmax(logits, dim=-1).squeeze().tolist()
+                    
+                    # 4. Extract explicit manual features for your baseline
+                        manual_features = extract_stylometrics(cleaned_text)
+                    
+                    # 5. Extract Tabular Probabilities via your Gradient Boosting Asset
+                    if models_loaded:
+                        # Use gb_model directly as loaded at the top of your file
+                        manual_features_scaled = feature_scaler.transform(manual_features)
+                        baseline_probs = gb_model.predict_proba(manual_features_scaled)[0].tolist()
+                        
+                        # Hybrid Fusion Calculation: Blend weights to handle adversarial tone
+                        t_weight = 0.4
+                        b_weight = 0.6
+                        
+                        probabilities = [
+                            (transformer_probs[i] * t_weight) + (baseline_probs[i] * b_weight)
+                            for i in range(len(transformer_probs))
+                        ]
+                    else:
+                        # Fallback to pure transformer output if local pkl files are missing
+                        probabilities = transformer_probs
+                    
                 else:
-                    st.error(" Critical Error: Could not locate configuration files inside `D:/Aiml/distilbert_weights/`.")
+                    st.error("Critical Error: Could not locate configuration files inside `D:/Aiml/distilbert_weights/`.")
                     st.stop()
 
+                # --- CODE ESCAPE: Out of the else block, executing at successful run-time ---
                 # 3. Explicitly map our 5 target LLM class labels uniformly
                 model_names = ['chatgpt', 'claude', 'gemini', 'groq_llama', 'mistral']
 
@@ -175,6 +201,7 @@ with tab1:
                 top_model = pred_df.iloc[0]['LLM Engine'].upper()
                 st.metric(label=" Primary Suspect Author Match", value=top_model)
                 
+                # Render your optimized Plotly performance graph
                 fig = px.bar(
                     pred_df, 
                     x='Probability Match', 
